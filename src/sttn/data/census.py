@@ -15,5 +15,5 @@ def get_tract_geo(state: str, year: int) -> gpd.GeoDataFrame:
     url = 'https://www2.census.gov/geo/tiger/TIGER{year}/TRACT/tl_{year}_{state_fips:02d}_tract.zip'.format(
         year=year, state_fips=fips_code)
     df = gpd.read_file(url)
-    df.GEOID = df.GEOID.astype(np.int64)  # np.int64 to fix windows C long issue
+    df.GEOID = pd.to_numeric(df.GEOID, downcast='integer')  # np.int64 to fix windows C long issue
     return df

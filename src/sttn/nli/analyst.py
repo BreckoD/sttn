@@ -94,8 +94,8 @@ class STTNAnalyst:
         content = analysis_code
         
         # add the 'context.network' to variable in user namespace to be available in InteractiveShell's (get_ipython()) scope
-        get_ipython().user_ns['_context_network'] = context.network
-        prefix = "sttn_network = _context_network\n"
+        get_ipython().user_ns['sttn_network'] = context.network  # _context_network
+        prefix = "sttn_network = sttn_network\n"
         
         analysis_code = prefix + content
         context.analysis_code = content
@@ -104,14 +104,15 @@ class STTNAnalyst:
         get_ipython().set_next_input(content)
         result = get_ipython().run_cell(analysis_code)
         
-        # after assigning to 'sttn_network' delete '_context_network' variable
-        del get_ipython().user_ns['_context_network']
         
         # if the code doesn't work, fix it with LLM
         if result.error_in_exec is not None:
             fixed_code = self._network_builder.get_fixed_code(context=context, exc=result.error_in_exec)
             get_ipython().set_next_input(fixed_code)
-            print(fixed_code)
+            # Run again
+            result = get_ipython().run_cell(fixed_code)
+            if result.error_in_exec is None:
+                context.result = result.result
         else:
             context.result = result.result
 
